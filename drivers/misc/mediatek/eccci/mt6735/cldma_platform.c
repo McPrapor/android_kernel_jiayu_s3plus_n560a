@@ -196,9 +196,10 @@ int md_cd_power_on(struct ccci_modem *md)
     struct md_cd_ctrl *md_ctrl = (struct md_cd_ctrl *)md->private_data;
     // turn on VLTE
 #ifdef FEATURE_VLTE_SUPPORT
+#ifndef CONFIG_V36BML_MODEM
     mt_set_gpio_out(GPIO_LTE_VSRAM_EXT_POWER_EN_PIN,1);
     CCCI_INF_MSG(md->index, CORE, "md_cd_power_on:mt_set_gpio_out(GPIO_LTE_VSRAM_EXT_POWER_EN_PIN,1)\n");
-
+#endif
     //if(!(mt6325_upmu_get_swcid()==PMIC6325_E1_CID_CODE ||
     //     mt6325_upmu_get_swcid()==PMIC6325_E2_CID_CODE))
     {
@@ -329,8 +330,10 @@ int md_cd_power_off(struct ccci_modem *md, unsigned int timeout)
     CCCI_INF_MSG(md->index, CORE, "md_cd_power_off:set VLTE on,bit0=0\n");
     pmic_config_interface(0x04D6, 0x0, 0x1, 0); //bit[0] =>1'b0
     }
+#ifndef CONFIG_V36BML_MODEM
     mt_set_gpio_out(GPIO_LTE_VSRAM_EXT_POWER_EN_PIN,0);
     CCCI_INF_MSG(md->index, CORE, "md_cd_power_off:mt_set_gpio_out(GPIO_LTE_VSRAM_EXT_POWER_EN_PIN,0)\n");
+#endif
 #endif
     return ret;
 }

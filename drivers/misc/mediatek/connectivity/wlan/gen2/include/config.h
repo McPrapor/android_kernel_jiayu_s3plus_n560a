@@ -56,7 +56,8 @@
 #endif
 
 #if CFG_ENABLE_AEE_MSG
-#include <mt-plat/aee.h>
+//#include <mt-plat/aee.h>
+#include <linux/aee.h>
 #endif
 
 /* 2 Flags for Driver Features */

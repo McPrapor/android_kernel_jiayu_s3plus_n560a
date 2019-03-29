@@ -34,6 +34,8 @@
 #include <linux/slab.h>
 #include <mach/sync_write.h>
 
+#include <linux/earlysuspend.h>
+
 #include <linux/of_platform.h>
 #include <linux/of_irq.h>
 #include <linux/of_address.h>

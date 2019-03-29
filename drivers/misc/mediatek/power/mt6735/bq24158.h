@@ -20,7 +20,7 @@
 #ifndef _bq24158_SW_H_
 #define _bq24158_SW_H_
 
-//#define CONFIG_HIGH_BATTERY_VOLTAGE_SUPPORT
+//#define HIGH_BATTERY_VOLTAGE_SUPPORT
 
 #define bq24158_CON0      0x00
 #define bq24158_CON1      0x01
@@ -162,14 +162,15 @@ extern void bq24158_set_iterm(kal_uint32 val);
 //CON5----------------------------------------------------
 extern void bq24158_set_dis_vreg(kal_uint32 val);
 extern void bq24158_set_io_level(kal_uint32 val);
-extern kal_uint32 bq24158_get_sp_status(void);
+extern kal_uint32 bq24158_get_dpm_status(void);
 extern kal_uint32 bq24158_get_en_level(void);
-extern void bq24158_set_vsp(kal_uint32 val);
+extern void bq24158_set_vdpm(kal_uint32 val);
 //CON6----------------------------------------------------
 extern void bq24158_set_i_safe(kal_uint32 val);
 extern void bq24158_set_v_safe(kal_uint32 val);
 //---------------------------------------------------------
 extern void bq24158_dump_register(void);
+extern int bq24158_dump_register_htc(char *buf, int size);
 extern kal_uint32 bq24158_config_interface_liao (kal_uint8 RegNum, kal_uint8 val);
 
 extern kal_uint32 bq24158_read_interface (kal_uint8 RegNum, kal_uint8 *val, kal_uint8 MASK, kal_uint8 SHIFT);

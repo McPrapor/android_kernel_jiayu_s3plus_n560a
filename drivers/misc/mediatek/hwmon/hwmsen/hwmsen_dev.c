@@ -33,6 +33,9 @@
 #include <linux/hwmsen_helper.h>
 #include <linux/hwmsen_dev.h>
 
+#include <linux/earlysuspend.h>
+#include <linux/wakelock.h>
+
 #include <cust_alsps.h>
 #include <aal_control.h>
 

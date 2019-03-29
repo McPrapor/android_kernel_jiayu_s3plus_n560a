@@ -101,13 +101,13 @@
 
 /* MTK GPU DVFS */
 #include <mali_kbase_pm.h>
-#include "mt_gpufreq.h"
+#include "mach/mt_gpufreq.h"
 #include <mali_kbase_pm_defs.h>
 #include <mali_kbase_pm_internal.h>
 #include "ged_dvfs.h"
 
 /* MTK chip version API */
-#include "mt_chip.h"
+#include "mach/mt_chip.h"
 
 /* GPU IRQ Tags */
 #define	JOB_IRQ_TAG	0

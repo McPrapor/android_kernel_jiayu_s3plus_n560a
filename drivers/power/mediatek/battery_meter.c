@@ -311,16 +311,22 @@ int BattThermistorConverTemp(int Res)
 	int RES1 = 0, RES2 = 0;
 	int TBatt_Value = -200, TMP1 = 0, TMP2 = 0;
 
+#ifdef CONFIG_V36BML_BATTERY
+        int TABLE_SIZE = NTC_TABLE_SIZE - 1;
+#else
+        int TABLE_SIZE = 16;
+#endif
+
 	BATT_TEMPERATURE *batt_temperature_table = &Batt_Temperature_Table[g_fg_battery_id];
 	if (Res >= batt_temperature_table[0].TemperatureR) {
 		TBatt_Value = -20;
-	} else if (Res <= batt_temperature_table[16].TemperatureR) {
+	} else if (Res <= batt_temperature_table[TABLE_SIZE].TemperatureR) {
 		TBatt_Value = 60;
 	} else {
 		RES1 = batt_temperature_table[0].TemperatureR;
 		TMP1 = batt_temperature_table[0].BatteryTemp;
 
-		for (i = 0; i <= 16; i++) {
+		for (i = 0; i <= TABLE_SIZE; i++) {
 			if (Res >= batt_temperature_table[i].TemperatureR) {
 				RES2 = batt_temperature_table[i].TemperatureR;
 				TMP2 = batt_temperature_table[i].BatteryTemp;
@@ -952,14 +958,20 @@ void fgauge_construct_battery_profile_init(void)
 	BATTERY_PROFILE_STRUC_P temp_profile_p, profile_p[PROFILE_SIZE];
 	int i, j, saddles, profile_index;
 	kal_int32 low_p = 0, high_p = 0, now_p = 0, low_vol = 0, high_vol = 0;
+
+#ifdef CONFIG_V36BML_BATTERY
+	int TABLE_SIZE = ZCV_TABLE_SIZE;
+#else
+	int TABLE_SIZE = 51;
+#endif
 	
 	profile_p[0] = fgauge_get_profile(TEMPERATURE_T0);
 	profile_p[1] = fgauge_get_profile(TEMPERATURE_T1);
 	profile_p[2] = fgauge_get_profile(TEMPERATURE_T2);
 	profile_p[3] = fgauge_get_profile(TEMPERATURE_T3);
 	saddles = fgauge_get_saddles();
-	temp_profile_p = (BATTERY_PROFILE_STRUC_P) kmalloc(51 * sizeof(*temp_profile_p), GFP_KERNEL);
-	memset(temp_profile_p, 0, 51 * sizeof(*temp_profile_p));
+	temp_profile_p = (BATTERY_PROFILE_STRUC_P) kmalloc(TABLE_SIZE * sizeof(*temp_profile_p), GFP_KERNEL);
+	memset(temp_profile_p, 0, TABLE_SIZE * sizeof(*temp_profile_p));
 	for (i=0; i< PROFILE_SIZE; i++) {
 		profile_index = 0;
 		for (j=0; j*2 <= 100; j++) {

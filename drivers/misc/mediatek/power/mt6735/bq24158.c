@@ -37,10 +37,17 @@
 #define bq24158_SLAVE_ADDR_WRITE   0xD4
 #define bq24158_SLAVE_ADDR_Read    0xD5
 
+#ifdef I2C_SWITHING_CHARGER_CHANNEL
+#define BQ24158_BUSNUM 1
+#else
+#define BQ24158_BUSNUM 1
+#endif
+
 static struct i2c_client *new_client = NULL;
 static const struct i2c_device_id bq24158_i2c_id[] = {{"bq24158",0},{}};   
 kal_bool chargin_hw_init_done = KAL_FALSE; 
 static int bq24158_driver_probe(struct i2c_client *client, const struct i2c_device_id *id);
+extern bool charging_init_flag;
 
 static struct i2c_driver bq24158_driver = {
     .driver = {
@@ -150,10 +157,11 @@ kal_uint32 bq24158_config_interface (kal_uint8 RegNum, kal_uint8 val, kal_uint8 
     kal_uint8 bq24158_reg = 0;
     int ret = 0;
 
-    battery_xlog_printk(BAT_LOG_FULL,"--------------------------------------------------\n");
+    if(!charging_init_flag)bq24158_write_byte(0x06,0x7A);
+    //battery_xlog_printk(BAT_LOG_FULL,"--------------------------------------------------\n");
 
     ret = bq24158_read_byte(RegNum, &bq24158_reg);
-    battery_xlog_printk(BAT_LOG_FULL,"[bq24158_config_interface] Reg[%x]=0x%x\n", RegNum, bq24158_reg);
+    //battery_xlog_printk(BAT_LOG_FULL,"[bq24158_config_interface] Reg[%x]=0x%x\n", RegNum, bq24158_reg);
     
     bq24158_reg &= ~(MASK << SHIFT);
     bq24158_reg |= (val << SHIFT);
@@ -173,7 +181,6 @@ kal_uint32 bq24158_config_interface (kal_uint8 RegNum, kal_uint8 val, kal_uint8 
 
     // Check
     //bq24158_read_byte(RegNum, &bq24158_reg);
-    //printk("[bq24158_config_interface] Check Reg[%x]=0x%x\n", RegNum, bq24158_reg);
 
     return ret;
 }
@@ -472,7 +479,7 @@ void bq24158_set_io_level(kal_uint32 val)
                                     );
 }
 
-kal_uint32 bq24158_get_sp_status(void)
+kal_uint32 bq24158_get_dpm_status(void)
 {
     kal_uint32 ret=0;
     kal_uint8 val=0;
@@ -498,7 +505,7 @@ kal_uint32 bq24158_get_en_level(void)
     return val;
 }
 
-void bq24158_set_vsp(kal_uint32 val)
+void bq24158_set_vdpm(kal_uint32 val)
 {
     kal_uint32 ret=0;    
 
@@ -541,13 +548,26 @@ void bq24158_set_v_safe(kal_uint32 val)
 void bq24158_dump_register(void)
 {
     int i=0;
-    printk("[bq24158] ");
     for (i=0;i<bq24158_REG_NUM;i++)
     {
         bq24158_read_byte(i, &bq24158_reg[i]);
-        printk("[0x%x]=0x%x ", i, bq24158_reg[i]);        
+        printk("[0x%x]=0x%x ", i, bq24158_reg[i]);
     }
-    printk("\n");
+}
+
+int bq24158_dump_register_htc(char *buf, int size)
+{
+    int i=0;
+	int len = 0;
+
+    for (i=0;i<bq24158_REG_NUM;i++)
+    {
+        bq24158_read_byte(i, &bq24158_reg[i]);
+        len += scnprintf(buf + len, size - len,
+			"BQ24158_REG[0x%x]: 0x%X;\n", i, bq24158_reg[i]);
+    }
+
+	return len;
 }
 
 #if 0
@@ -560,18 +580,15 @@ void bq24158_hw_init(void)
     {
         if(g_pmic_cid == 0x1020)
         {
-            printk("[bq24158_hw_init] (0x06,0x70) because 0x1020\n");
             bq24158_config_interface_liao(0x06,0x70); // set ISAFE
         }
         else
         {
-            printk("[bq24158_hw_init] (0x06,0x77)\n");
             bq24158_config_interface_liao(0x06,0x77); // set ISAFE and HW CV point (4.34)
         }
     }
     else
     {
-        printk("[bq24158_hw_init] (0x06,0x70) \n");
         bq24158_config_interface_liao(0x06,0x70); // set ISAFE
     }
 }
@@ -593,15 +610,10 @@ static int bq24158_driver_probe(struct i2c_client *client, const struct i2c_devi
 
     //---------------------
   //  bq24158_hw_init();
-#if defined(CONFIG_HIGH_BATTERY_VOLTAGE_SUPPORT)
-    bq24158_config_interface_liao(0x06,0x77);
-#else
-    bq24158_config_interface_liao(0x06,0x70);
-#endif
-    bq24158_dump_register();
+    //bq24158_dump_register();
     chargin_hw_init_done = KAL_TRUE;
 	
-    return 0;
+    return 0;                                                                                       
 
 exit:
     return err;
@@ -630,7 +642,7 @@ static ssize_t store_bq24158_access(struct device *dev,struct device_attribute *
     
     if(buf != NULL && size != 0)
     {
-        battery_xlog_printk(BAT_LOG_FULL,"[store_bq24158_access] buf is %s and size is %d \n",buf,(int)size);
+        battery_xlog_printk(BAT_LOG_FULL,"[store_bq24158_access] buf is %s and size is %lu \n",buf,size);
         reg_address = simple_strtoul(buf,&pvalue,16);
         
         if(size > 3)
@@ -680,7 +692,7 @@ static int __init bq24158_init(void)
 {    
     int ret=0;
     
-    battery_xlog_printk(BAT_LOG_CRTI,"[bq24158_init] init start\n");
+    battery_xlog_printk(BAT_LOG_CRTI,"[bq24158_init] init start. ch=%d\n", BQ24158_BUSNUM);
     
     i2c_register_board_info(BQ24158_BUSNUM, &i2c_bq24158, 1);
 

@@ -32,8 +32,8 @@
 #include <backend/gpu/mali_kbase_pm_internal.h>
 
 /* MTK GPU DVFS */
-#include "mt_gpufreq.h"
-#include "mt_chip.h"
+#include "mach/mt_gpufreq.h"
+#include "mach/mt_chip.h"
 //#include "mach/mt_devinfo.h"
 
 extern u32 get_devinfo_with_index(u32 index);

@@ -603,7 +603,9 @@ typedef struct
     /* common parameters */
     unsigned int width;
     unsigned int height;
+//#ifndef CONFIG_V36BML_LCM
     unsigned int density;
+//#endif
     unsigned int io_select_mode; //DBI or DPI should select IO mode according to chip spec
 
     /* particular parameters */
@@ -612,12 +614,22 @@ typedef struct
     LCM_DSI_PARAMS dsi;
     unsigned int physical_width;
     unsigned int physical_height;
+//#ifndef CONFIG_V36BML_LCM
     unsigned int physical_width_um;
     unsigned int physical_height_um;
+//#endif
 	unsigned int od_table_size;
 	void *od_table;
+#ifdef CONFIG_V36BML_LCM
+        /* backlight adjustment */
+        unsigned char pwm_min;
+        unsigned char pwm_default;
+        unsigned char pwm_max;
+        unsigned char camera_blk;
+        unsigned char camera_dua_blk;
+        unsigned char camera_rec_blk;
+#endif
 } LCM_PARAMS;
-
 
 // ---------------------------------------------------------------------------
 

@@ -316,6 +316,8 @@ extern LCM_DRIVER otm1287a_cmi50_chuanma_hd_lcm_drv;
 extern LCM_DRIVER ili9881c_hsd50_hlt_hd_lcm_drv;
 extern LCM_DRIVER otm1287a_cmi55_rx_hd_lcm_drv;
 extern LCM_DRIVER otm1287a_boe55_ykl_hd_lcm_drv;
+extern LCM_DRIVER hx8394f_hd720_dsi_vdo_truly_v36_drv;
+extern LCM_DRIVER hx8394d_hd720_dsi_vdo_truly_v36_drv;
 
 LCM_DRIVER* lcm_driver_list[] =
 {
@@ -1348,6 +1350,14 @@ LCM_DRIVER* lcm_driver_list[] =
 
 #if defined(ST7789H2_DBI)
 	&st7789h2_dbi_lcm_drv,
+#endif
+
+#if defined(HX8394F_HD720_DSI_VDO_TRULY_V36)
+        &hx8394f_hd720_dsi_vdo_truly_v36_drv,
+#endif
+
+#if defined(HX8394D_HD720_DSI_VDO_TRULY_V36)
+        &hx8394d_hd720_dsi_vdo_truly_v36_drv,
 #endif
 };
 

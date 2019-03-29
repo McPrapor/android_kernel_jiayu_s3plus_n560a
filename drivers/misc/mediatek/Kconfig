@@ -23,6 +23,11 @@ source "drivers/misc/mediatek/systracker/Kconfig"
 
 source "drivers/misc/mediatek/l2c_share/Kconfig"
 
+config V36BML_MODEM
+	bool "V36BML_MODEM"
+	help
+	  HTC v36bml_dugl modem features
+
 config HAVE_AEE_FEATURE
 	bool "HAVE_AEE_FEATURE"
 	help
@@ -410,6 +415,11 @@ config CUSTOM_KERNEL_LCM
 	help
 	  To choose kernel LCM driver name
 
+config V36BML_LCM
+	bool "V36BML_LCM"
+	help
+	  HTC v36bml_dugl lcm features
+
 config CUSTOM_KERNEL_TOUCHPANEL
 	string "CUSTOM_KERNEL_TOUCHPANEL"
 	help
@@ -516,6 +526,47 @@ config VANZO_TOUCHPANEL_GESTURES_SUPPORT
 	default n
 	help
 	  This option is used to enable 'SmwartWake' kernel support
+
+config BOSCH_BMA253
+        tristate "BMA253 acceleration sensor support"
+        depends on I2C=y
+        help
+                If you say yes here you get support for Bosch Sensortec's
+                acceleration sensors BMA253.
+
+config BOSCH_BMA253_ENABLE_INT1
+       tristate "BMA253 acceleration sensor interrupt INT1 support"
+       depends on BOSCH_BMA253=y
+        help
+         If you say yes here you get INT1 support for Bosch Sensortec's
+         acceleration sensors BMA253.
+
+config BOSCH_BMA253_ENABLE_INT2
+       tristate "BMA253 acceleration sensor interrupt INT2 support"
+       depends on BOSCH_BMA253=y
+       help
+         If you say yes here you get INT2 support for Bosch Sensortec's
+         acceleration sensors BMA253.
+
+config INPUT_CAPELLA_CM36686
+       tristate "CM36686 proximity and light sensor"
+       help
+       Say Y here to enable the CM36686 Short Distance Proximity
+       Sensor with Ambient Light Sensor.
+
+config SENSORS_AK09911
+       tristate "AK09911 compass support"
+       default n
+       depends on I2C
+       help
+                If you say yes here you get support for Asahi Kasei's
+                orientation sensor AK09911.
+
+config V36BML_BATTERY
+        bool "HTC v36bml_(d)ugl 2200mA battery"
+        default n
+        help
+           macro for projects with battery capacity
 
 source "drivers/misc/mediatek/Kconfig.kernel"
 source "drivers/misc/mediatek/Kconfig.drivers"

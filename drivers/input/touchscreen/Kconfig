@@ -998,6 +998,12 @@ config TOUCHSCREEN_STMPE
 	  To compile this driver as a module, choose M here: the
 	  module will be called stmpe-ts.
 
+config TOUCHSCREEN_HIMAX_E44
+        tristate "HIMAX HM852xES serious i2c touchscreen"
+                depends on I2C
+                help
+                This enables support for HIMAX HM852xES over I2C based touchscreens.
+
 config TOUCHSCREEN_TPS6507X
 	tristate "TPS6507x based touchscreens"
 	depends on I2C

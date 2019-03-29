@@ -1,0 +1,13 @@
+/ {
+/*	/delete-node/ firmware;*/
+	reserved-memory {
+                reserve-memory-ccci_md1 {
+                        size = <0x0 0x7010000>;
+		};
+	};
+	bus {
+		MT_SOC_DL1_PCM@0x11220000 {
+			extspkamp-gpio = <0x15 0x0>;
+		};	
+	};
+};

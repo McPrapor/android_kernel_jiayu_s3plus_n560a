@@ -30,6 +30,7 @@
 #include <asm/uaccess.h>
 #include "kd_camera_hw.h"
 #include <mach/upmu_sw.h>
+#include <mach/battery_common.h>
 #endif
 #ifdef CONFIG_COMPAT
 #include <linux/fs.h>
@@ -45,6 +46,7 @@ int strobe_getPartId(int sensorDev, int strobeId);
 MUINT32 strobeInit_dummy(FLASHLIGHT_FUNCTION_STRUCT **pfFunc);
 MUINT32 constantFlashlightInit(FLASHLIGHT_FUNCTION_STRUCT **pfFunc);
 //MUINT32 strobeInit_main(FLASHLIGHT_FUNCTION_STRUCT **pfFunc);
+MUINT32 strobeInit_main_sid1_part1(FLASHLIGHT_FUNCTION_STRUCT **pfFunc);
 MUINT32 strobeInit_main_sid1_part2(FLASHLIGHT_FUNCTION_STRUCT **pfFunc);
 MUINT32 strobeInit_main_sid2_part1(FLASHLIGHT_FUNCTION_STRUCT **pfFunc);
 MUINT32 strobeInit_main_sid2_part2(FLASHLIGHT_FUNCTION_STRUCT **pfFunc);
@@ -68,18 +70,18 @@ MUINT32 strobeInit_sub_sid2_part2(FLASHLIGHT_FUNCTION_STRUCT **pfFunc);
 #else
 	#define PFX "[KD_CAMERA_FLASHLIGHT]"
 	#define PK_DBG_NONE(fmt, arg...)    do {} while (0)
-	#define PK_DBG_FUNC(fmt, arg...)    printk(KERN_INFO PFX "%s: " fmt, __func__ ,##arg)
+	#define PK_DBG_FUNC(fmt, arg...)    printk(KERN_INFO PFX "%s: " fmt, __FUNCTION__ ,##arg)
 
-	#define PK_WARN(fmt, arg...)        printk(KERN_WARNING PFX "%s: " fmt, __func__ ,##arg)
-	#define PK_NOTICE(fmt, arg...)      printk(KERN_NOTICE PFX "%s: " fmt, __func__ ,##arg)
-	#define PK_INFO(fmt, arg...)        printk(KERN_INFO PFX "%s: " fmt, __func__ ,##arg)
-	#define PK_TRC_FUNC(f)              printk(PFX "<%s>\n", __func__);
+	#define PK_WARN(fmt, arg...)        printk(KERN_WARNING PFX "%s: " fmt, __FUNCTION__ ,##arg)
+	#define PK_NOTICE(fmt, arg...)      printk(KERN_NOTICE PFX "%s: " fmt, __FUNCTION__ ,##arg)
+	#define PK_INFO(fmt, arg...)        printk(KERN_INFO PFX "%s: " fmt, __FUNCTION__ ,##arg)
+	#define PK_TRC_FUNC(f)              printk(PFX "<%s>\n", __FUNCTION__);
 	#define PK_TRC_VERBOSE(fmt, arg...) printk(PFX fmt, ##arg)
 
 	#define DEBUG_KD_STROBE
 	#ifdef DEBUG_KD_STROBE
 	#define logI PK_DBG_FUNC
-	#define logE(fmt, arg...)         printk(KERN_ERR PFX "%s: " fmt, __func__ ,##arg)
+	#define logE(fmt, arg...)         printk(KERN_ERR PFX "%s: " fmt, __FUNCTION__ ,##arg)
 	#else
 	#define logI(a,...)
 	#define logE(a,...)
@@ -126,9 +128,7 @@ int	checkAndRelease(void)
 	{
 		if(g_pFlashInitFunc[i][j][k]!=0)
 		{
-		    #ifndef CONFIG_MEIZU_CLOSE_MTK_LOG
 		    logI("checkAndRelease %d %d %d", i, j, k);
-		    #endif
 			g_pFlashInitFunc[i][j][k]->flashlight_release(0);
 			g_pFlashInitFunc[i][j][k]=0;
 		}
@@ -243,7 +243,15 @@ static int setFlashDrv(int sensorDev, int strobeId)
         	if(strobeId==1)
         	{
                 if(partId==1)
-        			constantFlashlightInit(ppF);
+		  {
+                    #if defined(CONFIG_HTC_FLASHLIGHT_COMMON) //HTC_START
+                    logI("setFlashDrv CONFIG_HTC_FLASHLIGHT_COMMON is defined");
+		    strobeInit_main_sid1_part1(ppF);
+                    #else
+		    logI("setFlashDrv CONFIG_HTC_FLASHLIGHT_COMMON is UNdefined");
+		    constantFlashlightInit(ppF);
+                    #endif //HTC_END
+		  }
         		else if(partId==2)
         			strobeInit_main_sid1_part2(ppF);
         	}
@@ -312,13 +320,12 @@ static int decFlash(void)
 	}
 	return 0;
 }
-/*
+
 static int closeFlash(void)
 {
     int i;
 	int j;
 	int k;
-	int duty;
 	logI("closeFlash ln=%d",__LINE__);
 	for(i=0;i<e_Max_Sensor_Dev_Num;i++)
 	{
@@ -331,7 +338,7 @@ static int closeFlash(void)
         	    //logI("closeFlash ln=%d %d %d",__LINE__,k, (int)g_pFlashInitFunc[i][j][k]);
         		if(g_pFlashInitFunc[i][j][k]!=0)
         		{
-        		    logI("closeFlash i,j,k,duty %d %d %d", i, j, k);
+        		    logI("closeFlash i,j,k %d %d %d", i, j, k);
             		g_pFlashInitFunc[i][j][k]->flashlight_ioctl(FLASH_IOC_SET_ONOFF, 0);
         		}
         	}
@@ -339,7 +346,7 @@ static int closeFlash(void)
     }
 	return 0;
 }
-*/
+
 //@@{
 
 /*
@@ -361,15 +368,15 @@ static void Lbat_protection_powerlimit_flash(LOW_BATTERY_LEVEL level)
     {
         gLowPowerVbat=LOW_BATTERY_LEVEL_0;
     }
-    else if (level == LOW_BATTERY_LEVEL_1)
+    else if ((level == LOW_BATTERY_LEVEL_1)&&(BMT_status.UI_SOC < 15))
     {
-        decFlash();
+        closeFlash();
         gLowPowerVbat=LOW_BATTERY_LEVEL_1;
 
     }
-    else if(level == LOW_BATTERY_LEVEL_2)
+    else if((level == LOW_BATTERY_LEVEL_2)&&(BMT_status.UI_SOC < 15))
     {
-        decFlash();
+        closeFlash();
         gLowPowerVbat=LOW_BATTERY_LEVEL_2;
     }
     else
@@ -392,7 +399,7 @@ static void bat_per_protection_powerlimit_flashlight(BATTERY_PERCENT_LEVEL level
     }
     else if(level == BATTERY_PERCENT_LEVEL_1)
     {
-        decFlash();
+        closeFlash();
         gLowPowerPer=BATTERY_PERCENT_LEVEL_1;
     }
     else
@@ -457,10 +464,8 @@ static long flashlight_ioctl_core(struct file *file, unsigned int cmd, unsigned 
             logI("FLASH_IOC_IS_LOW_POWER");
             {
                 int isLow=0;
-#ifndef VANZO_LOW_POWER_FORCE_OPEN_FLASHLIGHT
                 if(gLowPowerPer!=BATTERY_PERCENT_LEVEL_0 || gLowPowerVbat!=LOW_BATTERY_LEVEL_0 )
                     isLow=1;
-#endif
                 logI("FLASH_IOC_IS_LOW_POWER %d %d %d",gLowPowerPer,gLowPowerVbat,isLow);
                 kdArg.arg = isLow;
                 if(copy_to_user((void __user *) arg , (void*)&kdArg , sizeof(kdStrobeDrvArg)))
@@ -553,7 +558,7 @@ static long flashlight_ioctl_core(struct file *file, unsigned int cmd, unsigned 
 static long flashlight_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
 {
     int err;
-    int dir;
+//    int dir;
     err = flashlight_ioctl_core(file, cmd, arg);
     //dir  = _IOC_DIR(cmd);
     //if(dir &_IOC_READ)

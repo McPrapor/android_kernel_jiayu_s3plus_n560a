@@ -97,6 +97,7 @@ extern void mt_eint_registration(unsigned int eint_num, unsigned int flow, void 
 extern void mt_eint_print_status(void);
 extern int mt_gpio_set_debounce(unsigned gpio, unsigned debounce);
 extern unsigned int mt_gpio_to_irq(unsigned gpio);
+extern unsigned int mt_eint_ack(unsigned int eint_num);
 
 
 /*

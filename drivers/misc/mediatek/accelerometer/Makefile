@@ -6,6 +6,8 @@ obj-y   +=  accel.o accel_factory.o
 # Vanzo:wangfei on: Wed, 12 Nov 2014 21:06:42 +0800
 project_name:=$(shell echo $(CONFIG_VANZO_INNER_PROJECT_NAME))
 
+obj-y      += bma253/
+
 ifneq ($(project_name),)
 custom_kernel_accelerometer:= $(addsuffix /, $(shell echo $(CONFIG_CUSTOM_KERNEL_ACCELEROMETER_NAME)))
 ifneq ($(custom_kernel_accelerometer),)

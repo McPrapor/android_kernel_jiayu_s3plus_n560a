@@ -44,13 +44,13 @@
 // ANDROID_LOG_VERBOSE
 #define TAG_NAME "[strobe_main_sid2_part1.c]"
 #define PK_DBG_NONE(fmt, arg...)    do {} while (0)
-#define PK_DBG_FUNC(fmt, arg...)    pr_debug(TAG_NAME "%s: " fmt, __func__ ,##arg)
-#define PK_WARN(fmt, arg...)        pr_warning(TAG_NAME "%s: " fmt, __func__ ,##arg)
-#define PK_NOTICE(fmt, arg...)      pr_notice(TAG_NAME "%s: " fmt, __func__ ,##arg)
-#define PK_INFO(fmt, arg...)        pr_info(TAG_NAME "%s: " fmt, __func__ ,##arg)
-#define PK_TRC_FUNC(f)              pr_debug(TAG_NAME "<%s>\n", __func__)
+#define PK_DBG_FUNC(fmt, arg...)    pr_debug(TAG_NAME "%s: " fmt, __FUNCTION__ ,##arg)
+#define PK_WARN(fmt, arg...)        pr_warning(TAG_NAME "%s: " fmt, __FUNCTION__ ,##arg)
+#define PK_NOTICE(fmt, arg...)      pr_notice(TAG_NAME "%s: " fmt, __FUNCTION__ ,##arg)
+#define PK_INFO(fmt, arg...)        pr_info(TAG_NAME "%s: " fmt, __FUNCTION__ ,##arg)
+#define PK_TRC_FUNC(f)              pr_debug(TAG_NAME "<%s>\n", __FUNCTION__)
 #define PK_TRC_VERBOSE(fmt, arg...) pr_debug(TAG_NAME fmt, ##arg)
-#define PK_ERROR(fmt, arg...)       pr_err(TAG_NAME "%s: " fmt, __func__ ,##arg)
+#define PK_ERROR(fmt, arg...)       pr_err(TAG_NAME "%s: " fmt, __FUNCTION__ ,##arg)
 
 
 #define DEBUG_LEDS_STROBE
@@ -76,21 +76,16 @@ Functions
 *****************************************************************************/
 static void work_timeOutFunc(struct work_struct *data);
 
-extern int flashEnable_LM3646_2(void);
-extern int flashDisable_LM3646_2(void);
-extern int setDuty_LM3646_2(int duty);
-extern int FlashIc_Enable(void);
-extern int FlashIc_Disable(void);
-extern int m_duty2;
-extern int LED1Closeflag;
-extern int LED2Closeflag;
+//extern int flashEnable_sky81296_2(void);
+//extern int flashDisable_sky81296_2(void);
+//extern int setDuty_sky81296_2(int duty);
 //int init_sky81296();
 
 
 
 static int FL_Enable(void)
 {
-    flashEnable_LM3646_2();
+//    flashEnable_sky81296_1();
     PK_DBG("FL_Enable-");
 
     return 0;
@@ -98,14 +93,14 @@ static int FL_Enable(void)
 
 static int FL_Disable(void)
 {
-    flashDisable_LM3646_2();
+  //  flashDisable_sky81296_1();
 
     return 0;
 }
 
 static int FL_dim_duty(kal_uint32 duty)
 {
-    setDuty_LM3646_2(duty);
+    //setDuty_sky81296_1(duty);
     return 0;
 }
 
@@ -129,7 +124,7 @@ static int FL_Init(void)
 }
 static int FL_Uninit(void)
 {
-	FlashIc_Disable();
+	FL_Disable();
     return 0;
 }
 
@@ -143,8 +138,7 @@ static int detLowPowerStart(void)
 {
 
 //	g_lowPowerLevel=LOW_BATTERY_LEVEL_0;
-    return 0;
-
+	return 0;
 }
 
 
@@ -226,7 +220,7 @@ static int constant_flashlight_ioctl(unsigned int cmd, unsigned long arg)
 
     	case FLASH_IOC_SET_DUTY :
     		PK_DBG("FLASHLIGHT_DUTY: %d\n",(int)arg);
-    		m_duty2 = arg;
+    		FL_dim_duty(arg);
     		break;
 
 
@@ -245,18 +239,10 @@ static int constant_flashlight_ioctl(unsigned int cmd, unsigned long arg)
 					ktime = ktime_set( 0, g_timeOutTimeMs*1000000 );
 					hrtimer_start( &g_timeOutTimer, ktime, HRTIMER_MODE_REL );
 	            }
-				LED2Closeflag = 0;
-				FlashIc_Enable();
-				FL_dim_duty(m_duty2);
     			FL_Enable();
     		}
     		else
     		{
-    			//m_duty2 = -1;
-    			LED2Closeflag = 1;
-    			if (LED1Closeflag==0 || LED2Closeflag==0)
-				FlashIc_Enable();
-				FL_dim_duty(m_duty2);
     			FL_Disable();
 				hrtimer_cancel( &g_timeOutTimer );
     		}
